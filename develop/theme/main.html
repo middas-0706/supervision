@@ -11,6 +11,23 @@
 {{ super() }}
 {% endblock content %}
 
+{# Banner warning readers that they are on an archived version tree. Material renders
+   the aside server-side and unhides it client-side, so the text stays in the HTML for
+   crawlers and AI answer engines that never run JavaScript. Emitting it only when
+   mike is deploying something other than latest keeps that warning off /latest/ —
+   an empty block makes Material skip the aside entirely. #}
+{% block outdated %}
+{% set doc_version = config.extra.doc_version | d("", true) %}
+{% set latest_url = config.site_url | d('https://supervision.roboflow.com/latest/', true) %}
+{% if doc_version == "develop" %}
+You are reading the unreleased development version of the documentation, built from the <code>develop</code> branch.<br>
+APIs described here may change or may never ship in a release, so use the <a href="{{ latest_url }}"><strong>latest stable release</strong></a> instead.
+{% elif doc_version and doc_version != "latest" %}
+You are reading the documentation for an older version of Supervision, kept online for reference.<br>
+APIs described here may have changed or been removed, so use the <a href="{{ latest_url }}"><strong>latest stable release</strong></a> instead.
+{% endif %}
+{% endblock %}
+
 {% block extrahead %}
 {{ super() }}
 {% if page.meta is defined and page.meta is not none and page.meta is not undefined %}
@@ -19,6 +36,7 @@
 {% set _meta = {} %}
 {% endif %}
 {% set page_description = _meta.description | d(config.site_description) %}
+{% set docs_base_url = config.site_url | trim("/") %}
 {# ── GEO: JSON-LD + OG tags (page context required — skip for theme templates like 404) #}
 
 {# ── GEO: JSON-LD structured data ──────────────────────────── #}
@@ -58,7 +76,12 @@
   "codeRepository": "https://github.com/roboflow/supervision",
   "license": "https://github.com/roboflow/supervision/blob/develop/LICENSE.md",
   "description": "Open-source Python library for computer vision: load datasets, draw detections, count objects in zones, and track across frames.",
-  "offers": {
+  {% if config.extra.github_stars %}"interactionStatistic": {
+    "@type": "InteractionCounter",
+    "interactionType": "https://schema.org/LikeAction",
+    "userInteractionCount": {{ config.extra.github_stars | tojson }}
+  },
+  {% endif %}"offers": {
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD"
@@ -79,7 +102,7 @@
   },
   "potentialAction": {
     "@type": "SearchAction",
-    "target": "{{ config.site_url }}search/?q={search_term_string}",
+    "target": "{{ docs_base_url }}/search/?q={search_term_string}",
     "query-input": "required name=search_term_string"
   }
 }
@@ -120,7 +143,7 @@
       "name": "How do I install supervision?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Install supervision with pip: pip install supervision. For optional metric dependencies use pip install supervision[metrics]. Sample asset utilities are included in the base package under supervision.assets. The current package metadata requires Python 3.9+."
+        "text": "Install supervision with pip: pip install supervision. For optional metric dependencies use pip install supervision[metrics]. Sample asset utilities are included in the base package under supervision.assets. The current package metadata requires Python 3.10+."
       }
     },
     {
