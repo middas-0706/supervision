@@ -4072,6 +4072,9 @@ APIs described here may change or may never ship in a release, so use the <a hre
 <h3 id="unreleased-upcoming">Unreleased <small>upcoming</small><a class="headerlink" href="#unreleased-upcoming" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
+<p><code>sv.DetectionDataset.as_labelme</code>, <code>as_yolo</code>, and <code>as_pascal_voc</code> now export annotations for in-memory grayscale images shaped <code>(height, width)</code> without failing on a missing channel dimension. Image dimensions and annotation coordinates are preserved, Pascal VOC records depth <code>1</code>, and the source pixels are unchanged. <a href="https://github.com/roboflow/supervision/pull/2641">#2641</a></p>
+</li>
+<li>
 <p><code>sv.KeyPoints.with_nms</code> now preserves skeletons with zero joints, including those produced by boolean keypoint filtering, instead of raising a zero-size reduction error. All aligned fields and NMS validation requirements are preserved. <a href="https://github.com/roboflow/supervision/pull/2639">#2639</a></p>
 </li>
 <li>
@@ -4082,6 +4085,9 @@ APIs described here may change or may never ship in a release, so use the <a hre
 </li>
 <li>
 <p><code>sv.DetectionDataset.as_yolo</code>, <code>as_pascal_voc</code>, <code>as_coco</code>, <code>as_createml</code> and <code>as_labelme</code> can now export into the folder the dataset's images were loaded from. The image copy step called <code>shutil.copyfile</code> onto the file itself and failed with <code>shutil.SameFileError</code> before any annotation was written, so a dataset could not be re-saved in place, for example a COCO dataset whose images and <code>_annotations.coco.json</code> share one folder, as in the <code>from_coco</code> example. An image that is already at its destination is now left where it is and the annotations are written, as <code>sv.ClassificationDataset.as_folder_structure</code> already does. Exports into another folder, and images held in memory, are unchanged. (<a href="https://github.com/roboflow/supervision/pull/2637">#2637</a>)</p>
+</li>
+<li>
+<p><code>sv.DetectionDataset.as_labelme</code> now gives disconnected components of one mask a shared group ID. <code>sv.DetectionDataset.from_labelme</code> combines shapes with the same label and non-null group ID, including <code>0</code>, into one detection with a union mask and enclosing box. Ungrouped shapes and distinct labels or groups remain separate, preserving instance membership through a LabelMe round trip. <a href="https://github.com/roboflow/supervision/pull/2640">#2640</a></p>
 </li>
 <li>
 <p><code>sv.ConfusionMatrix</code> now supports <code>MetricTarget.MASKS</code>, so an instance segmentation model can be scored on the shapes it predicts rather than on their bounding boxes. <code>from_detections</code> and <code>benchmark</code> accept <code>metric_target=MetricTarget.MASKS</code> and match predictions to targets by mask IoU, computed with <code>mask_iou_batch</code> on dense <code>(N, H, W)</code> arrays or <code>CompactMask</code>; every other metric already offered this target, and <code>ConfusionMatrix</code> was the one that raised <code>MetricTarget.MASKS is not currently supported</code>. Two instances that share a box but not a shape are no longer counted as a match, and the validation grids written by <code>benchmark(save_directory_path=...)</code> fill each mask so the panels show the geometry the outcome was decided on. A non-empty <code>Detections</code> without <code>mask</code>, or predictions and targets whose masks differ in resolution, raise <code>ValueError</code>; <code>Detections.empty()</code> needs no masks. <code>from_tensors</code>, <code>evaluate_detection_batch</code> and <code>detections_to_tensor</code> keep rejecting masks, which have no tensor row layout, and now point at <code>from_detections</code>. <code>from_detections</code> also raises when <code>predictions</code> and <code>targets</code> differ in length instead of silently scoring the shorter list. (<a href="https://github.com/roboflow/supervision/pull/2612">#2612</a>)</p>
@@ -6166,7 +6172,7 @@ APIs described here may change or may never ship in a release, so use the <a hre
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 30, 2026 17:39:04 UTC">September 30, 2026</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 30, 2026 20:12:40 UTC">September 30, 2026</span>
   </span>
 
     
